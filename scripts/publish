@@ -25,6 +25,10 @@ echo ""
 # sanity check
 # ---------------------------------------------------------
 
+git add .;
+git commit -m "Automatic update";
+git push origin main;
+
 echo "[0/7] Checking git state"
 
 if [ -n "$(git status --porcelain)" ]; then

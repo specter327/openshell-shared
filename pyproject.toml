@@ -27,5 +27,5 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["openshell_shared"]
+include = ["openshell_shared/*"]
 exclude = ["*__pycache__*", "*.egg-info*"]
