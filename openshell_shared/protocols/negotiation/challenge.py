@@ -6,7 +6,7 @@ from time import time
 from uuid6 import uuid7
 
 from .models import AuthenticationChallenge, AuthenticationResponse
-from shared.cryptography.signatures import sign_data, verify_signature
+from ...cryptography.signatures import sign_data, verify_signature
 
 
 SCHEMA_VERSION = 1
