@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openshell-shared"
+version = "0.1.1"
+description = "Shared library for OpenShell (OSAM/OSA/OSAC)"
+readme = "README.md"
+requires-python = ">=3.12"
+
+authors = [
+    { name = "Daniel Pérez" }
+]
+
+license = { text = "Proprietary" }
+
+dependencies = [
+    "httpx",
+    "cryptography",
+    "websockets",
+    "uuid6",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["*__pycache__*", "*.egg-info*"]

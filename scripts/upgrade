@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+
+# =========================================================
+# OpenShell Shared Updater
+# Dev sync + reinstall
+# =========================================================
+
+echo ""
+echo "================================="
+echo " Updating openshell-shared"
+echo "================================="
+echo ""
+
+BRANCH=$(git branch --show-current)
+
+echo "[1/4] Current branch: $BRANCH"
+
+echo "[2/4] Fetch + pull"
+git fetch origin
+git pull origin "$BRANCH"
+
+echo "[3/4] Reinstall (editable mode)"
+pip install -e .
+
+echo ""
+echo "================================="
+echo " Update completed"
+echo "================================="

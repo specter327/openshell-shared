@@ -1,0 +1,92 @@
+#!/bin/bash
+
+set -e
+
+# =========================================================
+# OpenShell Shared Publisher
+# PyPI + GitHub Release
+# =========================================================
+
+VERSION=$1
+
+if [ -z "$VERSION" ]; then
+    echo "Uso:"
+    echo "./publish.sh 1.2.3"
+    exit 1
+fi
+
+echo ""
+echo "======================================"
+echo " Publishing openshell-shared $VERSION "
+echo "======================================"
+echo ""
+
+# ---------------------------------------------------------
+# sanity check
+# ---------------------------------------------------------
+
+echo "[0/7] Checking git state"
+
+if [ -n "$(git status --porcelain)" ]; then
+    echo "❌ Working directory not clean"
+    git status --short
+    exit 1
+fi
+
+# ---------------------------------------------------------
+# Update version
+# ---------------------------------------------------------
+
+echo "[1/7] Updating version in pyproject.toml"
+
+sed -i \
+"s/version = \".*\"/version = \"$VERSION\"/" \
+pyproject.toml
+
+# ---------------------------------------------------------
+# Tests
+# ---------------------------------------------------------
+
+# ---------------------------------------------------------
+# Build clean
+# ---------------------------------------------------------
+
+echo "[3/7] Cleaning build artifacts"
+
+rm -rf dist build *.egg-info
+
+echo "[4/7] Building package"
+
+python3 -m build
+
+# ---------------------------------------------------------
+# Git commit + tag
+# ---------------------------------------------------------
+
+echo "[5/7] Git commit + tag"
+
+git add pyproject.toml
+git commit -m "Release $VERSION"
+git tag "v$VERSION"
+
+# ---------------------------------------------------------
+# Push
+# ---------------------------------------------------------
+
+echo "[6/7] Pushing to GitHub"
+
+git push origin main
+git push origin "v$VERSION"
+
+# ---------------------------------------------------------
+# Upload PyPI
+# ---------------------------------------------------------
+
+echo "[7/7] Uploading to PyPI"
+
+python3 -m twine upload dist/*
+
+echo ""
+echo "======================================"
+echo " DONE: openshell-shared $VERSION"
+echo "======================================"
