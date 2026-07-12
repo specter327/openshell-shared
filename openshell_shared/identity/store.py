@@ -1,150 +1,284 @@
-# shared/identity/store.py
+from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
-import os
+from typing import Any
 
 
 class IdentityStoreError(Exception):
+    """Identity storage error."""
     pass
 
 
 class IdentityStore:
     """
-    Generic filesystem-based identity vault.
+    Generic JSON-based identity store.
 
-    Responsibilities:
-    - persist identity blobs (public/private)
-    - load identity blobs
-    - export safe/public view
-    - ensure structural consistency
+    Responsibilities
+    ----------------
+    - Manage public/private identity files.
+    - Read and write JSON documents.
+    - Detect existence.
+    - Detect validity.
+    - Persist identities atomically.
 
-    It does NOT:
-    - generate identities
-    - perform cryptographic operations
-    - enforce business rules
+    This class intentionally knows nothing about the
+    structure of the identity itself.
     """
 
-    def __init__(self, base_path: Path, namespace: str):
-        """
-        Args:
-            base_path: root storage path (e.g. storage/)
-            namespace: entity namespace (ra, osam, agent, proxy, etc.)
-        """
+    PUBLIC_FILENAME = "public.json"
+    PRIVATE_FILENAME = "private.json"
 
-        self._base = Path(base_path)
-        self._namespace = namespace
+    # =====================================================
+    # CONSTRUCTOR
+    # =====================================================
 
-        self._root = self._base / namespace / "identity"
+    def __init__(
+        self,
+        root_path: Path,
+        identity_name: str
+    ) -> None:
 
-        self._public_path = self._root / "profile.public.json"
-        self._private_path = self._root / "profile.private.json"
-        self._meta_path = self._root / "metadata.json"
+        self._root = (
+            Path(root_path)
+            / "identity"
+            / identity_name.lower()
+        )
 
-        self._ensure_structure()
+        self._root.mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
-    # ---------------------------------------------------------
-    # INTERNAL
-    # ---------------------------------------------------------
-    def _ensure_structure(self):
-        self._root.mkdir(parents=True, exist_ok=True)
+        self._public_path = (
+            self._root /
+            self.PUBLIC_FILENAME
+        )
 
-    def _write_json(self, path: Path, data: Dict[str, Any]):
-        tmp_path = path.with_suffix(".tmp")
+        self._private_path = (
+            self._root /
+            self.PRIVATE_FILENAME
+        )
 
-        with open(tmp_path, "w") as f:
-            json.dump(data, f, indent=4)
+    # =====================================================
+    # PROPERTIES
+    # =====================================================
 
-        tmp_path.replace(path)
+    @property
+    def root(self) -> Path:
+        return self._root
 
-    def _read_json(self, path: Path) -> Dict[str, Any]:
+    @property
+    def public_path(self) -> Path:
+        return self._public_path
+
+    @property
+    def private_path(self) -> Path:
+        return self._private_path
+
+    # =====================================================
+    # PRIVATE
+    # =====================================================
+
+    def _read(
+        self,
+        path: Path
+    ) -> str:
+
         if not path.exists():
-            raise IdentityStoreError(f"Missing identity file: {path}")
+            raise IdentityStoreError(
+                f"File not found: {path}"
+            )
 
-        with open(path, "r") as f:
-            return json.load(f)
+        return path.read_text(
+            encoding="utf-8"
+        )
 
-    # ---------------------------------------------------------
-    # LIFECYCLE
-    # ---------------------------------------------------------
+    def _write(
+        self,
+        path: Path,
+        content: str
+    ) -> None:
+
+        temporary = path.with_suffix(
+            path.suffix + ".tmp"
+        )
+
+        with open(
+            temporary,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            file.write(content)
+            file.flush()
+
+        temporary.replace(path)
+
+    def _read_json(
+        self,
+        path: Path
+    ) -> dict[str, Any]:
+
+        try:
+
+            data = json.loads(
+                self._read(path)
+            )
+
+        except FileNotFoundError as exc:
+            raise IdentityStoreError(
+                str(exc)
+            ) from exc
+
+        except json.JSONDecodeError as exc:
+            raise IdentityStoreError(
+                f"Invalid JSON: {path}"
+            ) from exc
+
+        if not isinstance(data, dict):
+
+            raise IdentityStoreError(
+                f"Identity document must be a JSON object: {path}"
+            )
+
+        if not data:
+
+            raise IdentityStoreError(
+                f"Identity document is empty: {path}"
+            )
+
+        return data
+
+    def _write_json(
+        self,
+        path: Path,
+        data: dict[str, Any]
+    ) -> None:
+
+        if not isinstance(data, dict):
+
+            raise IdentityStoreError(
+                "Identity must be a dictionary."
+            )
+
+        text = json.dumps(
+            data,
+            indent=4,
+            ensure_ascii=False
+        )
+
+        self._write(
+            path,
+            text
+        )
+
+    # =====================================================
+    # STATUS
+    # =====================================================
+
     def exists(self) -> bool:
-        print("CWD:", os.getcwd())
-        print("PUBLIC:", self._public_path)
-        print("PRIVATE:", self._private_path)
+        """
+        Returns True if both identity files exist.
+        """
 
-        print("PUBLIC EXISTS:", self._public_path.exists())
-        print("PRIVATE EXISTS:", self._private_path.exists())
+        return (
+            self.public_path.exists()
+            and
+            self.private_path.exists()
+        )
 
-        return self._public_path.exists() and self._private_path.exists()
+    def is_valid(self) -> bool:
+        """
+        Returns True if both files exist and contain
+        valid, non-empty JSON objects.
+        """
+
+        try:
+
+            self.load_public()
+            self.load_private()
+
+            return True
+
+        except Exception:
+
+            return False
+
+    # =====================================================
+    # LOAD
+    # =====================================================
+
+    def load_public(self) -> dict[str, Any]:
+
+        return self._read_json(
+            self.public_path
+        )
+
+    def load_private(self) -> dict[str, Any]:
+
+        return self._read_json(
+            self.private_path
+        )
+
+    def load(
+        self
+    ) -> tuple[
+        dict[str, Any],
+        dict[str, Any]
+    ]:
+
+        return (
+            self.load_public(),
+            self.load_private()
+        )
+
+    # =====================================================
+    # SAVE
+    # =====================================================
+
+    def save_public(
+        self,
+        data: dict[str, Any]
+    ) -> None:
+
+        self._write_json(
+            self.public_path,
+            data
+        )
+
+    def save_private(
+        self,
+        data: dict[str, Any]
+    ) -> None:
+
+        self._write_json(
+            self.private_path,
+            data
+        )
 
     def save(
         self,
-        public_profile: Dict[str, Any],
-        private_profile: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None
+        public: dict[str, Any],
+        private: dict[str, Any]
     ) -> None:
-        """
-        Persist identity bundle atomically.
-        """
 
-        self._write_json(self._public_path, public_profile)
-        self._write_json(self._private_path, private_profile)
+        self.save_public(public)
+        self.save_private(private)
 
-        if metadata is not None:
-            self._write_json(self._meta_path, metadata)
+    # =====================================================
+    # DELETE
+    # =====================================================
 
-    def load(self) -> Dict[str, Any]:
-        """
-        Load full identity bundle.
-        """
-
-        return {
-            "public": self._read_json(self._public_path),
-            "private": self._read_json(self._private_path),
-            "metadata": (
-                self._read_json(self._meta_path)
-                if self._meta_path.exists()
-                else None
-            )
-        }
-
-    def load_public(self) -> Dict[str, Any]:
-        return self._read_json(self._public_path)
-
-    def load_private(self) -> Dict[str, Any]:
-        return self._read_json(self._private_path)
-
-    # ---------------------------------------------------------
-    # EXPORT (SAFE)
-    # ---------------------------------------------------------
-    def export_public(self, export_path: Path) -> Path:
-        """
-        Export only public identity (safe for sharing).
-        """
-
-        data = self.load_public()
-
-        export_path = Path(export_path)
-        export_path.mkdir(parents=True, exist_ok=True)
-
-        file_path = export_path / f"{self._namespace}.identity.public.json"
-
-        with open(file_path, "w") as f:
-            json.dump(data, f, indent=4)
-
-        return file_path
-
-    # ---------------------------------------------------------
-    # DELETE (optional, destructive)
-    # ---------------------------------------------------------
     def delete(self) -> None:
-        """
-        Remove identity completely.
-        """
 
-        if self._root.exists():
-            for file in self._root.glob("*"):
-                file.unlink()
+        if self.public_path.exists():
+            self.public_path.unlink()
 
-            self._root.rmdir()
+        if self.private_path.exists():
+            self.private_path.unlink()
+
+        try:
+            self.root.rmdir()
+        except OSError:
+            pass
