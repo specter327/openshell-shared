@@ -4,6 +4,7 @@ import base64
 from uuid6 import uuid7
 from typing import Dict, Any
 from cryptography.exceptions import InvalidSignature
+from .entity import EntityIdentity
 
 class AuthenticationCredential:
     """
@@ -12,7 +13,14 @@ class AuthenticationCredential:
     y al sujeto mediante sus atributos criptográficos inmutables (UID y PIK).
     """
     def __repr__(self) -> str:
-        return f"AuthenticationCredential(\n    auth_token:{self._auth_token},\n    authenticated_at:{self._authenticated_at},\n    issuer: {self._issuer},\n    subject: {self._subject}"
+        return (
+            "AuthenticationCredential(\n"
+            f"    auth_token={self._auth_token},\n"
+            f"    authenticated_at={self._authenticated_at},\n"
+            f"    issuer={self._issuer},\n"
+            f"    subject={self._subject}\n"
+            ")"
+        )
 
     def __init__(
         self,
@@ -47,6 +55,10 @@ class AuthenticationCredential:
     @property
     def signature(self) -> bytes:
         return self._signature
+
+    @property
+    def is_valid(self) -> bool:
+        return self.validate()
 
     def _compute_canonical_payload(self) -> bytes:
         """
@@ -108,3 +120,94 @@ class AuthenticationCredential:
             )
         except (InvalidSignature, ValueError, TypeError, KeyError):
             return False
+
+    # ---------------------------------------------------------
+    # Serialization
+    # ---------------------------------------------------------
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Exporta la credencial a un diccionario.
+        """
+
+        return {
+            "auth_token": self._auth_token,
+            "authenticated_at": self._authenticated_at,
+            "issuer": self._issuer.to_dict(
+                include_private=False
+            ),
+            "subject": self._subject.to_dict(
+                include_private=False
+            ),
+            "signature": base64.b64encode(
+                self._signature
+            ).decode("utf-8")
+        }
+
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: Dict[str, Any]
+    ) -> "AuthenticationCredential":
+        """
+        Reconstruye una credencial desde un diccionario.
+        """
+        issuer = EntityIdentity.from_dict(
+            data["issuer"]
+        )
+
+
+        subject = EntityIdentity.from_dict(
+            data["subject"]
+        )
+
+        # Validate both identites
+        if not issuer.validate():
+            raise ValueError(f"Invalid issuer: {issuer}")
+
+        if not subject.validate():
+            raise ValueError(f"Invalid subject: {subject}")
+
+        signature = base64.b64decode(
+            data["signature"]
+        )
+
+        credential = cls(
+            auth_token=data["auth_token"],
+            authenticated_at=data["authenticated_at"],
+            issuer=issuer,
+            subject=subject,
+            signature=signature
+        )
+
+        if not credential.validate():
+            raise ValueError(f"Invalid credential")
+
+        return credential 
+
+
+    def to_json(self) -> str:
+        """
+        Serializa la credencial a JSON.
+        """
+
+        return json.dumps(
+            self.to_dict(),
+            sort_keys=True,
+            separators=(",", ":")
+        )
+
+
+    @classmethod
+    def from_json(
+        cls,
+        data: str
+    ) -> "AuthenticationCredential":
+        """
+        Reconstruye una credencial desde JSON.
+        """
+
+        return cls.from_dict(
+            json.loads(data)
+        )
