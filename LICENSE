@@ -1,0 +1,128 @@
+OPEN SHELL SOFTWARE LICENSE AGREEMENT
+Version 1.0
+
+Copyright (c) 2026 OpenShell Project
+All rights reserved.
+
+======================================================================
+NOTICE OF COPYRIGHT AND OWNERSHIP
+======================================================================
+
+This software, including but not limited to its source code, binaries,
+documentation, designs, protocols, architectures, specifications,
+algorithms, data structures, and associated materials, is the exclusive
+intellectual property of the copyright holder.
+
+Unauthorized copying, reproduction, modification, distribution,
+publication, sublicensing, sale, reverse engineering, or creation of
+derivative works based on this software is strictly prohibited unless
+expressly authorized in writing by the copyright holder.
+
+======================================================================
+1. OWNERSHIP
+======================================================================
+
+The copyright holder retains all rights, title, and interest in and to
+the software.
+
+Nothing in this license transfers ownership, intellectual property
+rights, patents, trademarks, trade secrets, or any other rights to any
+third party.
+
+The recipient receives only the limited rights expressly granted by this
+license.
+
+======================================================================
+2. PRIVATE REPOSITORIES
+======================================================================
+
+For private repositories, access to the source code does not grant any
+license, authorization, or permission to use, copy, distribute,
+reproduce, modify, or disclose the software outside the authorized
+scope.
+
+Authorized access shall be considered confidential and shall not imply
+any transfer of rights.
+
+======================================================================
+3. PUBLIC REPOSITORIES
+======================================================================
+
+Where this software is made publicly available, access to the source
+code is provided solely for inspection, evaluation, and educational
+purposes unless a separate written agreement grants additional rights.
+
+Public availability does not constitute abandonment of copyright,
+ownership, or intellectual property rights.
+
+======================================================================
+4. RESTRICTIONS
+======================================================================
+
+Unless explicitly authorized in writing by the copyright holder, you may
+not:
+
+- Copy or redistribute this software.
+- Sell, sublicense, or commercially exploit this software.
+- Modify or create derivative works.
+- Remove copyright notices.
+- Claim authorship or ownership.
+- Present the software or derived works as your own creation.
+- Use the software to create competing products or services.
+- Reverse engineer, decompile, or disassemble protected components,
+  except where such restriction is prohibited by applicable law.
+
+======================================================================
+5. CONTRIBUTIONS
+======================================================================
+
+Any contribution, modification, improvement, suggestion, or submission
+provided by any third party does not transfer ownership of intellectual
+property rights.
+
+Unless otherwise agreed in writing, contributors grant the copyright
+holder a worldwide, perpetual, irrevocable license to use, modify,
+incorporate, distribute, and commercialize such contributions.
+
+Contributors represent that they have the necessary rights to provide
+their contributions.
+
+======================================================================
+6. TRADEMARKS
+======================================================================
+
+OpenShell, associated names, logos, brands, and identifiers are
+protected assets of the copyright holder.
+
+This license does not grant permission to use trademarks, branding, or
+project names without prior written authorization.
+
+======================================================================
+7. DISCLAIMER OF WARRANTY
+======================================================================
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED.
+
+THE COPYRIGHT HOLDER SHALL NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+OTHER LIABILITY ARISING FROM THE USE OR INABILITY TO USE THE SOFTWARE.
+
+======================================================================
+8. GOVERNING LAW
+======================================================================
+
+This agreement shall be interpreted according to applicable copyright
+and intellectual property laws.
+
+Any disputes shall be subject to the jurisdiction determined by the
+copyright holder's applicable legal residence.
+
+======================================================================
+9. RESERVATION OF RIGHTS
+======================================================================
+
+All rights not expressly granted by this license are reserved.
+
+======================================================================
+
+END OF LICENSE
