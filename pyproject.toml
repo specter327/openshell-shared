@@ -13,7 +13,7 @@ authors = [
     { name = "Specter" }
 ]
 
-license = { text = "Proprietary" }
+license = "MIT"
 
 dependencies = [
     "httpx",
