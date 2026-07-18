@@ -5,3 +5,4 @@ from . import identity
 from . import modules
 from . import protocols
 from . import standards
+from . import certificates
