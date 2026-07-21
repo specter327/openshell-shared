@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, ClassVar
+from typing import ClassVar, Optional
 from uuid import UUID
 
 import hashlib
@@ -12,8 +12,8 @@ import string
 from uuid6 import uuid7
 
 from .types import (
+    PASSPORT_STATUS,
     PASSPORT_TYPE,
-    PASSPORT_STATUS
 )
 
 
@@ -22,9 +22,12 @@ class Passport:
     """
     Portable domain-integration passport.
 
-    A passport authorizes an entity to request membership
+    A Passport authorizes an entity to request membership
     in a specific domain through a defined integration
     protocol.
+
+    The Passport records the CAD that authorized its
+    issuance through cad_uid.
 
     OPEN:
         The passport is not restricted to a predefined
@@ -43,6 +46,7 @@ class Passport:
 
     uid: str
 
+    cad_uid: str
     domain_uid: str
 
     fingerprint: str
@@ -71,7 +75,9 @@ class Passport:
     # Representation
     # =====================================================
 
-    def __repr__(self) -> str:
+    def __repr__(
+        self
+    ) -> str:
 
         entity_pik_display = (
             "<UNDEFINED>"
@@ -81,6 +87,7 @@ class Passport:
 
         return f"""Passport(
     uid={self.uid},
+    cad_uid={self.cad_uid},
     domain_uid={self.domain_uid},
     fingerprint={self.fingerprint},
     entity_uid={self.entity_uid},
@@ -96,19 +103,23 @@ class Passport:
     # =====================================================
 
     @property
-    def passport_uid(self) -> str:
+    def passport_uid(
+        self
+    ) -> str:
         """
-        Compatibility alias for repositories using
-        PASSPORT_UID.
+        Compatibility alias for persistence adapters using
+        passport_uid.
         """
 
         return self.uid
 
     @property
-    def passport_fingerprint(self) -> str:
+    def passport_fingerprint(
+        self
+    ) -> str:
         """
-        Compatibility alias for repositories using
-        PASSPORT_FINGERPRINT.
+        Compatibility alias for persistence adapters using
+        passport_fingerprint.
         """
 
         return self.fingerprint
@@ -123,12 +134,20 @@ class Passport:
         protocol: str
     ) -> str:
 
-        if not isinstance(protocol, str):
+        if not isinstance(
+            protocol,
+            str
+        ):
+
             raise TypeError(
                 "protocol must be a string"
             )
 
-        normalized = protocol.strip().upper()
+        normalized = (
+            protocol
+            .strip()
+            .upper()
+        )
 
         supported_protocols = {
             PASSPORT_TYPE.OPEN.value,
@@ -136,8 +155,10 @@ class Passport:
         }
 
         if normalized not in supported_protocols:
+
             raise ValueError(
-                f"Unsupported passport protocol: {protocol}"
+                f"Unsupported passport protocol: "
+                f"{protocol}"
             )
 
         return normalized
@@ -148,12 +169,20 @@ class Passport:
         status: str
     ) -> str:
 
-        if not isinstance(status, str):
+        if not isinstance(
+            status,
+            str
+        ):
+
             raise TypeError(
                 "status must be a string"
             )
 
-        normalized = status.strip().upper()
+        normalized = (
+            status
+            .strip()
+            .upper()
+        )
 
         supported_statuses = {
             PASSPORT_STATUS.ACTIVE.value,
@@ -164,8 +193,10 @@ class Passport:
         }
 
         if normalized not in supported_statuses:
+
             raise ValueError(
-                f"Unsupported passport status: {status}"
+                f"Unsupported passport status: "
+                f"{status}"
             )
 
         return normalized
@@ -179,7 +210,9 @@ class Passport:
         try:
 
             return str(
-                UUID(str(value))
+                UUID(
+                    str(value)
+                )
             )
 
         except (
@@ -199,6 +232,7 @@ class Passport:
     ) -> Optional[str]:
 
         if entity_uid is None:
+
             return None
 
         return cls._normalize_uuid(
@@ -211,25 +245,34 @@ class Passport:
         entity_pik: Optional[str]
     ) -> Optional[str]:
         """
-        Normalizes the serialized Ed25519 public identity
+        Normalize the serialized Ed25519 public identity
         key.
 
-        This model treats the PIK as an opaque serialized
+        The Passport treats the PIK as an opaque serialized
         string. Cryptographic decoding and validation belong
-        to EntityIdentity or the identity primitives.
+        to the identity primitives.
         """
 
         if entity_pik is None:
+
             return None
 
-        if not isinstance(entity_pik, str):
+        if not isinstance(
+            entity_pik,
+            str
+        ):
+
             raise TypeError(
                 "entity_pik must be a string"
             )
 
-        normalized = entity_pik.strip()
+        normalized = (
+            entity_pik
+            .strip()
+        )
 
         if not normalized:
+
             raise ValueError(
                 "entity_pik cannot be empty"
             )
@@ -241,7 +284,11 @@ class Passport:
         predefined_role: str
     ) -> str:
 
-        if not isinstance(predefined_role, str):
+        if not isinstance(
+            predefined_role,
+            str
+        ):
+
             raise TypeError(
                 "predefined_role must be a string"
             )
@@ -253,6 +300,7 @@ class Passport:
         )
 
         if not normalized:
+
             raise ValueError(
                 "predefined_role cannot be empty"
             )
@@ -264,7 +312,11 @@ class Passport:
         security_code: str
     ) -> str:
 
-        if not isinstance(security_code, str):
+        if not isinstance(
+            security_code,
+            str
+        ):
+
             raise TypeError(
                 "security_code must be a string"
             )
@@ -276,6 +328,7 @@ class Passport:
         )
 
         if not normalized:
+
             raise ValueError(
                 "security_code cannot be empty"
             )
@@ -294,20 +347,24 @@ class Passport:
         entity_pik: Optional[str]
     ) -> bool:
         """
-        Enforces identity requirements for OPEN and CLOSED
+        Enforce identity requirements for OPEN and CLOSED
         passports.
         """
 
         if protocol == PASSPORT_TYPE.OPEN.value:
 
             if entity_uid is not None:
+
                 raise ValueError(
-                    "OPEN passports cannot define entity_uid"
+                    "OPEN passports cannot define "
+                    "entity_uid"
                 )
 
             if entity_pik is not None:
+
                 raise ValueError(
-                    "OPEN passports cannot define entity_pik"
+                    "OPEN passports cannot define "
+                    "entity_pik"
                 )
 
             return True
@@ -315,11 +372,13 @@ class Passport:
         if protocol == PASSPORT_TYPE.CLOSED.value:
 
             if entity_uid is None:
+
                 raise ValueError(
                     "CLOSED passports require entity_uid"
                 )
 
             if entity_pik is None:
+
                 raise ValueError(
                     "CLOSED passports require entity_pik"
                 )
@@ -327,7 +386,8 @@ class Passport:
             return True
 
         raise ValueError(
-            f"Unsupported passport protocol: {protocol}"
+            f"Unsupported passport protocol: "
+            f"{protocol}"
         )
 
     # =====================================================
@@ -340,12 +400,17 @@ class Passport:
         length: int = DEFAULT_SECURITY_CODE_LENGTH
     ) -> str:
 
-        if not isinstance(length, int):
+        if not isinstance(
+            length,
+            int
+        ):
+
             raise TypeError(
                 "Security code length must be an integer"
             )
 
         if length < 4:
+
             raise ValueError(
                 "Security code length must be at least 4"
             )
@@ -362,8 +427,8 @@ class Passport:
         security_code: str
     ) -> bool:
         """
-        Compares a presented security code with the
-        passport security code using constant-time
+        Compare a presented security code against the
+        Passport security code using constant-time
         comparison.
         """
 
@@ -391,17 +456,20 @@ class Passport:
     # Fingerprint
     # =====================================================
 
-    def _fingerprint_payload(self) -> dict:
+    def _fingerprint_payload(
+        self
+    ) -> dict:
         """
-        Returns the canonical information protected by the
-        passport fingerprint.
+        Return the canonical Passport information protected
+        by the fingerprint.
 
-        The fingerprint itself is excluded to avoid a
-        recursive definition.
+        cad_uid is included because the authorizing CAD is
+        part of the Passport identity and provenance.
         """
 
         return {
             "uid": self.uid,
+            "cad_uid": self.cad_uid,
             "domain_uid": self.domain_uid,
             "entity_uid": self.entity_uid,
             "entity_pik": self.entity_pik,
@@ -411,42 +479,60 @@ class Passport:
             "status": self.status,
         }
 
-    def calculate_fingerprint(self) -> str:
+    def calculate_fingerprint(
+        self
+    ) -> str:
 
         canonical_data = json.dumps(
             self._fingerprint_payload(),
             sort_keys=True,
-            separators=(",", ":"),
+            separators=(
+                ",",
+                ":"
+            ),
             ensure_ascii=False,
-        ).encode("utf-8")
+        ).encode(
+            "utf-8"
+        )
 
         return hashlib.sha256(
             canonical_data
         ).hexdigest()
 
-    def verify_fingerprint(self) -> bool:
+    def verify_fingerprint(
+        self
+    ) -> bool:
         """
-        Verifies that the passport data matches its
-        registered fingerprint.
+        Verify that the Passport data matches its registered
+        fingerprint.
         """
 
-        if not isinstance(self.fingerprint, str):
+        if not isinstance(
+            self.fingerprint,
+            str
+        ):
+
             return False
 
         if not self.fingerprint:
+
             return False
 
-        expected = self.calculate_fingerprint()
+        expected = (
+            self.calculate_fingerprint()
+        )
 
         return secrets.compare_digest(
             self.fingerprint,
             expected
         )
 
-    def refresh_fingerprint(self) -> str:
+    def refresh_fingerprint(
+        self
+    ) -> str:
         """
-        Recalculates the fingerprint after an intentional
-        passport mutation.
+        Recalculate the fingerprint after an intentional
+        Passport mutation.
         """
 
         self.fingerprint = (
@@ -459,7 +545,9 @@ class Passport:
     # Validation
     # =====================================================
 
-    def validate(self) -> bool:
+    def validate(
+        self
+    ) -> bool:
 
         # -------------------------------------------------
         # Normalize identifiers
@@ -468,6 +556,11 @@ class Passport:
         self.uid = self._normalize_uuid(
             value=self.uid,
             field_name="uid"
+        )
+
+        self.cad_uid = self._normalize_uuid(
+            value=self.cad_uid,
+            field_name="cad_uid"
         )
 
         self.domain_uid = self._normalize_uuid(
@@ -529,17 +622,23 @@ class Passport:
         # Validate fingerprint
         # -------------------------------------------------
 
-        if not isinstance(self.fingerprint, str):
+        if not isinstance(
+            self.fingerprint,
+            str
+        ):
+
             raise TypeError(
                 "fingerprint must be a string"
             )
 
         if not self.fingerprint:
+
             raise ValueError(
                 "fingerprint cannot be empty"
             )
 
         if not self.verify_fingerprint():
+
             raise ValueError(
                 "Invalid passport fingerprint"
             )
@@ -551,7 +650,9 @@ class Passport:
     # =====================================================
 
     @property
-    def is_active(self) -> bool:
+    def is_active(
+        self
+    ) -> bool:
 
         return (
             self.status
@@ -559,7 +660,9 @@ class Passport:
         )
 
     @property
-    def is_open(self) -> bool:
+    def is_open(
+        self
+    ) -> bool:
 
         return (
             self.protocol
@@ -567,7 +670,9 @@ class Passport:
         )
 
     @property
-    def is_closed(self) -> bool:
+    def is_closed(
+        self
+    ) -> bool:
 
         return (
             self.protocol
@@ -579,7 +684,7 @@ class Passport:
         status: str
     ) -> bool:
         """
-        Changes the passport status and refreshes its
+        Change the Passport status and refresh its
         fingerprint.
 
         Persistence remains the repository's responsibility.
@@ -605,8 +710,8 @@ class Passport:
         entity_pik: str
     ) -> bool:
         """
-        Determines whether an authenticated entity matches
-        the expected identity of this passport.
+        Determine whether an authenticated entity matches
+        the expected Passport identity.
 
         OPEN passports accept any authenticated identity.
 
@@ -614,9 +719,11 @@ class Passport:
         """
 
         if self.is_open:
+
             return True
 
         if not self.is_closed:
+
             return False
 
         try:
@@ -642,6 +749,7 @@ class Passport:
             return False
 
         if normalized_pik is None:
+
             return False
 
         uid_matches = secrets.compare_digest(
@@ -663,16 +771,21 @@ class Passport:
     # Portable integration code
     # =====================================================
 
-    def to_integration_code(self) -> str:
+    def to_integration_code(
+        self
+    ) -> str:
         """
-        Returns:
+        Return:
 
             PassportUID.DomainUID.EntityUID|#.SECURITY_CODE
 
-        ENTITY_PIK is intentionally not included. The
-        cryptographic identity must be obtained from the
-        authenticated session and compared against the
-        stored passport.
+        The CAD UID is intentionally omitted because the
+        Passport is resolved from persistent storage using
+        Passport UID.
+
+        ENTITY_PIK is also omitted. The cryptographic
+        identity must be obtained from the authenticated
+        session and compared against the stored Passport.
         """
 
         entity_segment = (
@@ -694,14 +807,19 @@ class Passport:
         integration_code: str
     ) -> dict:
         """
-        Parses a portable integration code.
+        Parse a portable integration code.
 
         This does not reconstruct the complete Passport.
-        Protocol, role, status, expected PIK and fingerprint
-        must be resolved from persistent storage.
+        CAD, protocol, role, status, expected PIK and
+        fingerprint must be resolved from persistent
+        storage.
         """
 
-        if not isinstance(integration_code, str):
+        if not isinstance(
+            integration_code,
+            str
+        ):
+
             raise TypeError(
                 "integration_code must be a string"
             )
@@ -713,6 +831,7 @@ class Passport:
         )
 
         if len(segments) != 4:
+
             raise ValueError(
                 "Invalid integration code format"
             )
@@ -764,10 +883,13 @@ class Passport:
     # Serialization
     # =====================================================
 
-    def to_dict(self) -> dict:
+    def to_dict(
+        self
+    ) -> dict:
 
         return {
             "uid": self.uid,
+            "cad_uid": self.cad_uid,
             "domain_uid": self.domain_uid,
             "fingerprint": self.fingerprint,
             "entity_uid": self.entity_uid,
@@ -778,7 +900,9 @@ class Passport:
             "status": self.status,
         }
 
-    def to_json(self) -> str:
+    def to_json(
+        self
+    ) -> str:
 
         return json.dumps(
             self.to_dict(),
@@ -796,25 +920,46 @@ class Passport:
         data: dict
     ) -> Passport:
 
-        if not isinstance(data, dict):
+        if not isinstance(
+            data,
+            dict
+        ):
+
             raise TypeError(
                 "Passport data must be a dictionary"
             )
 
         passport = cls(
-            uid=data.get("uid"),
-            domain_uid=data.get("domain_uid"),
-            fingerprint=data.get("fingerprint"),
-            entity_uid=data.get("entity_uid"),
-            entity_pik=data.get("entity_pik"),
+            uid=data.get(
+                "uid"
+            ),
+            cad_uid=data.get(
+                "cad_uid"
+            ),
+            domain_uid=data.get(
+                "domain_uid"
+            ),
+            fingerprint=data.get(
+                "fingerprint"
+            ),
+            entity_uid=data.get(
+                "entity_uid"
+            ),
+            entity_pik=data.get(
+                "entity_pik"
+            ),
             security_code=data.get(
                 "security_code"
             ),
-            protocol=data.get("protocol"),
+            protocol=data.get(
+                "protocol"
+            ),
             predefined_role=data.get(
                 "predefined_role"
             ),
-            status=data.get("status"),
+            status=data.get(
+                "status"
+            ),
         )
 
         passport.validate()
@@ -827,14 +972,20 @@ class Passport:
         data: str
     ) -> Passport:
 
-        if not isinstance(data, str):
+        if not isinstance(
+            data,
+            str
+        ):
+
             raise TypeError(
                 "Passport JSON data must be a string"
             )
 
         try:
 
-            decoded = json.loads(data)
+            decoded = json.loads(
+                data
+            )
 
         except json.JSONDecodeError as error:
 
@@ -853,6 +1004,7 @@ class Passport:
     @classmethod
     def create(
         cls,
+        cad_uid: str | UUID,
         domain_uid: str | UUID,
         protocol: str,
         predefined_role: str,
@@ -862,8 +1014,17 @@ class Passport:
         security_code_length: int = (
             DEFAULT_SECURITY_CODE_LENGTH
         ),
-        status: str = PASSPORT_STATUS.ACTIVE.value,
+        status: str = (
+            PASSPORT_STATUS.ACTIVE.value
+        ),
     ) -> Passport:
+
+        normalized_cad_uid = (
+            cls._normalize_uuid(
+                value=cad_uid,
+                field_name="cad_uid"
+            )
+        )
 
         normalized_domain_uid = (
             cls._normalize_uuid(
@@ -925,7 +1086,10 @@ class Passport:
             )
 
         passport = cls(
-            uid=str(uuid7()),
+            uid=str(
+                uuid7()
+            ),
+            cad_uid=normalized_cad_uid,
             domain_uid=normalized_domain_uid,
             fingerprint="",
             entity_uid=normalized_entity_uid,
