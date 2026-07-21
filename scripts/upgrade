@@ -22,7 +22,11 @@ git fetch origin
 git pull origin "$BRANCH"
 
 echo "[3/4] Reinstall (editable mode)"
-pip install -e .
+pip uninstall openshell-shared --break-system-packages;
+
+sleep 10;
+
+pip install openshell-shared --break-system-packages;
 
 echo ""
 echo "================================="
